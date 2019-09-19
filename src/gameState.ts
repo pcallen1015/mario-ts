@@ -1,12 +1,9 @@
-class GameState {
-    public scale: number = 2;
-    public width: number = 1500;
-    public height: number = 480;
-    public cellWidth: number = 16;
-    public cellHeight: number = 16;
-    public cursors: Phaser.Types.Input.Keyboard.CursorKeys;
-
-    constructor() {}
-}
-
-export default new GameState();
+export const gameState: any = {
+    width: 1500,
+    height: 480,
+    cellWidth: 16,
+    cellHeight: 16,
+    scale: 2,
+    marioWalkVelocity: 200,
+    marioJumpVelocity: 750
+};

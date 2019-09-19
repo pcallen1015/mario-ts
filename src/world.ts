@@ -1,17 +1,7 @@
 import { Scene } from 'phaser';
-import gameState from './gameState';
+import { gameState } from './gameState';
 
 export class World extends Scene {
-    private cursors: any;
-    private background: any;
-    private mario: any;
-    private tiles: any;
-    private blocks: any;
-    private bricks: any;
-
-    private jumping: boolean;
-    private airborne: boolean;
-
     constructor() {
         super({ key: 'World' });
     }
@@ -25,22 +15,22 @@ export class World extends Scene {
     }
 
     create(): void {
-        this.cursors = this.createControls();
-        this.background = this.createBackground();
-        this.tiles = this.createTiles();
-        this.blocks = this.createBlocks();
-        this.bricks = this.createBricks();
+        this.createControls();
+        this.createBackground();
+        this.createTiles();
+        this.createBlocks();
+        this.createBricks();
 
-        this.mario = this.physics.add.sprite(32, 300, 'mario', 0).setOrigin(0, 0).setScale(gameState.scale);
-        this.mario.setCollideWorldBounds(true);
-        this.physics.add.collider(this.mario, this.tiles);
-        this.physics.add.collider(this.mario, this.blocks);
-        this.physics.add.collider(this.mario, this.bricks);
+        gameState.mario = this.physics.add.sprite(32, 300, 'mario', 0).setOrigin(0, 0).setScale(gameState.scale);
+        gameState.mario.setCollideWorldBounds(true);
+        this.physics.add.collider(gameState.mario, gameState.tiles);
+        this.physics.add.collider(gameState.mario, gameState.blocks);
+        this.physics.add.collider(gameState.mario, gameState.bricks);
 
         // Setup camera
         this.cameras.main.setBounds(0, 0, gameState.width, gameState.height);
         this.physics.world.setBounds(0, 0, gameState.width, gameState.height);
-        this.cameras.main.startFollow(this.mario, true, 0.5, 0.5, -100);
+        this.cameras.main.startFollow(gameState.mario, true, 0.5, 0.5, -100);
 
         // Mario animations
         this.anims.create({
@@ -74,25 +64,25 @@ export class World extends Scene {
             yoyo: true,
         });        
 
-        this.blocks.playAnimation('item_block_shimmer', true);
+        gameState.blocks.playAnimation('item_block_shimmer', true);
     }
 
-    private createControls(): Phaser.Types.Input.Keyboard.CursorKeys {
-        return this.input.keyboard.createCursorKeys();
+    private createControls(): void {
+        gameState.cursors = this.input.keyboard.createCursorKeys();
     }
 
-    private createBackground(): Phaser.GameObjects.Image {
-        return this.add.image(0, 0, 'bg').setOrigin(0, 0).setScale(2);
+    private createBackground(): void {
+        gameState.background = this.add.image(0, 0, 'bg').setOrigin(0, 0).setScale(2);
     }
 
-    private createTiles(): Phaser.Physics.Arcade.StaticGroup {
+    private createTiles(): void {
         // TODO: these should be placed based on coordinates for the level
         const tiles = this.physics.add.staticGroup();
         for (let c = 0; c <= 768 / gameState.cellWidth; c++) {
             tiles.create(c * gameState.cellWidth * gameState.scale, 416, 'tiles', 0).setOrigin(0,0).setScale(gameState.scale).refreshBody();
             tiles.create(c * gameState.cellWidth * gameState.scale, 448, 'tiles', 0).setOrigin(0,0).setScale(gameState.scale).refreshBody();
         }
-        return tiles;
+        gameState.tiles = tiles;
     }
 
     private createBlocks() {
@@ -107,7 +97,7 @@ export class World extends Scene {
         itemBlocks.forEach(block => {
             blocks.create(block.x * gameState.cellWidth * gameState.scale, block.y * gameState.cellHeight * gameState.scale, 'item_overworld', 0).setOrigin(0, 0).setScale(gameState.scale).refreshBody();
         });
-        return blocks;
+        gameState.blocks = blocks;
     }
 
     private createBricks() {
@@ -126,41 +116,41 @@ export class World extends Scene {
 
     update() {
         // Determine Mario's pace
-        const pace = 200 * (this.cursors.shift.isDown ? 2 : 1);
+        const pace = 200 * (gameState.cursors.shift.isDown ? 2 : 1);
 
         // Reset jumping flag when Mario touches the ground
-        if (this.mario.body.touching.down) {
-            this.jumping = false;
-            this.airborne = false;
+        if (gameState.mario.body.touching.down) {
+            gameState.mario.jumping = false;
+            gameState.mario.airborne = false;
         } else {
-            this.airborne = true;
+            gameState.mario.airborne = true;
         }
 
         // Walking/running direction
-        if (this.cursors.right.isDown) {
-            this.mario.setVelocityX(pace);
-            this.mario.flipX = false;
-        } else if (this.cursors.left.isDown) {
-            this.mario.setVelocityX(-1 * pace);
-            this.mario.flipX = true
+        if (gameState.cursors.right.isDown) {
+            gameState.mario.setVelocityX(pace);
+            gameState.mario.flipX = false;
+        } else if (gameState.cursors.left.isDown) {
+            gameState.mario.setVelocityX(-1 * pace);
+            gameState.mario.flipX = true
         } else {
-            this.mario.setVelocityX(0);
+            gameState.mario.setVelocityX(0);
         }
 
         // Enable jumping, only if Mario is on the ground
-        if (this.cursors.up.isDown && !this.jumping) {
-            this.mario.setVelocityY(-1 * 750);
-            this.jumping = true;
+        if (gameState.cursors.up.isDown && !gameState.mario.jumping) {
+            gameState.mario.setVelocityY(-1 * 750);
+            gameState.mario.jumping = true;
         }
 
         // Handle player animation
-        if (this.jumping) {
-            this.mario.anims.play('mario_jump', true);
-        } else if (this.cursors.right.isDown || this.cursors.left.isDown) {
-            if (this.airborne) this.mario.anims.stop();
-            else this.mario.anims.play('mario_run', true);
+        if (gameState.mario.jumping) {
+            gameState.mario.anims.play('mario_jump', true);
+        } else if (gameState.cursors.right.isDown || gameState.cursors.left.isDown) {
+            if (gameState.mario.airborne) gameState.mario.anims.stop();
+            else gameState.mario.anims.play('mario_run', true);
         } else {
-            this.mario.anims.play('mario_idle', true);
+            gameState.mario.anims.play('mario_idle', true);
         }
     }
 }
